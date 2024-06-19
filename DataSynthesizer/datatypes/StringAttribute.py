@@ -17,6 +17,7 @@ class StringAttribute(AbstractAttribute):
         super().__init__(name, is_candidate_key, is_categorical, histogram_size, data)
         self.is_numerical = False
         self.data_type = DataType.STRING
+        self.data = self.data.astype(str)
         self.data_dropna = self.data_dropna.astype(str)
         self.data_dropna_len = self.data_dropna.map(len)
 
