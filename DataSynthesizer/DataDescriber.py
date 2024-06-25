@@ -64,7 +64,7 @@ class DataDescriber:
         self.df_encoded: DataFrame = None
 
     def describe_dataset_in_random_mode(self,
-                                        dataset_file: str,
+                                        df: DataFrame,
                                         attribute_to_datatype: Dict[str, DataType] = None,
                                         attribute_to_is_categorical: Dict[str, bool] = None,
                                         attribute_to_is_candidate_key: Dict[str, bool] = None,
@@ -85,7 +85,7 @@ class DataDescriber:
         self.attr_to_datatype = {attr: DataType(datatype) for attr, datatype in attribute_to_datatype.items()}
         self.attr_to_is_categorical = attribute_to_is_categorical
         self.attr_to_is_candidate_key = attribute_to_is_candidate_key
-        self.read_dataset_from_csv(dataset_file)
+        self.read_dataset_from_csv(df)
         self.infer_attribute_data_types()
         self.analyze_dataset_meta()
         self.represent_input_dataset_by_columns()
@@ -105,7 +105,7 @@ class DataDescriber:
             self.data_description['attribute_description'][attr] = column.to_json()
 
     def describe_dataset_in_independent_attribute_mode(self,
-                                                       dataset_file,
+                                                       df,
                                                        epsilon=0.1,
                                                        attribute_to_datatype: Dict[str, DataType] = None,
                                                        attribute_to_is_categorical: Dict[str, bool] = None,
@@ -113,7 +113,7 @@ class DataDescriber:
                                                        categorical_attribute_domain_file: str = None,
                                                        numerical_attribute_ranges: Dict[str, List] = None,
                                                        seed=0):
-        self.describe_dataset_in_random_mode(dataset_file,
+        self.describe_dataset_in_random_mode(df,
                                              attribute_to_datatype,
                                              attribute_to_is_categorical,
                                              attribute_to_is_candidate_key,
@@ -131,7 +131,7 @@ class DataDescriber:
             self.data_description['attribute_description'][attr] = column.to_json()
 
     def describe_dataset_in_correlated_attribute_mode(self,
-                                                      dataset_file,
+                                                      df,
                                                       k=0,
                                                       epsilon=0.1,
                                                       attribute_to_datatype: Dict[str, DataType] = None,
@@ -164,7 +164,7 @@ class DataDescriber:
         seed : int or float
             Seed the random number generator.
         """
-        self.describe_dataset_in_independent_attribute_mode(dataset_file,
+        self.describe_dataset_in_independent_attribute_mode(df,
                                                             epsilon,
                                                             attribute_to_datatype,
                                                             attribute_to_is_categorical,
@@ -181,13 +181,13 @@ class DataDescriber:
         self.data_description['conditional_probabilities'] = construct_noisy_conditional_distributions(
             self.bayesian_network, self.df_encoded, epsilon / 2)
 
-    def read_dataset_from_csv(self, file_name=None):
-        try:
-            self.df_input = read_csv(file_name, skipinitialspace=True, na_values=self.null_values)
-        except (UnicodeDecodeError, NameError):
-            self.df_input = read_csv(file_name, skipinitialspace=True, na_values=self.null_values,
-                                     encoding='latin1')
-
+    def read_dataset_from_csv(self, df):
+        # try:
+        #     self.df_input = read_csv(file_name, skipinitialspace=True, na_values=self.null_values)
+        # except (UnicodeDecodeError, NameError):
+        #     self.df_input = read_csv(file_name, skipinitialspace=True, na_values=self.null_values,
+        #                              encoding='latin1')
+        self.df_input = df.copy()
         # Remove columns with empty active domain, i.e., all values are missing.
         attributes_before = set(self.df_input.columns)
         self.df_input.dropna(axis=1, how='all')
